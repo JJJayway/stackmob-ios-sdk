@@ -31,9 +31,7 @@ void synchronousQuery(SMDataStore *sm, SMQuery *query, SynchronousQuerySuccessBl
 void syncWithSemaphore(void (^block)(dispatch_semaphore_t semaphore)) {
     dispatch_semaphore_t s = dispatch_semaphore_create(0);
     block(s);
-    while(dispatch_semaphore_wait(s, DISPATCH_TIME_NOW)) {
-        [[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode beforeDate:[NSDate dateWithTimeIntervalSinceNow:10.0]];
-    }
+    dispatch_semaphore_wait(s, DISPATCH_TIME_FOREVER); // Block the MOC private queue, scheduling network callbacks on a private queue (defined in SMJSONRequestOperation.m)
     dispatch_release(s);
 }
 
