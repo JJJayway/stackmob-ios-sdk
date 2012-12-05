@@ -220,7 +220,17 @@
             }
         };
         
+        // Run callbacks on a private queue. This *should* work, as the context queue should be blocked in -syncWithSemaphore
+        static dispatch_queue_t private_queue;
+        static dispatch_once_t onceToken;
+        dispatch_once(&onceToken, ^{
+            private_queue = dispatch_queue_create("SMDataStore network callback", 0);
+        });
+        
         AFJSONRequestOperation *op = [SMJSONRequestOperation JSONRequestOperationWithRequest:request success:onSuccess failure:retryBlock];
+        op.successCallbackQueue = private_queue;
+        op.failureCallbackQueue = private_queue;
+        
         [[self.session oauthClientWithHTTPS:FALSE] enqueueHTTPRequestOperation:op];
     }
     
